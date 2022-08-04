@@ -5,6 +5,7 @@ channels:
   - defaults
 dependencies:
   - python=3
+  - pysam=0.19.1
   - r-base=4
   - nextclade=2.4.0
   - snpEff=5.1

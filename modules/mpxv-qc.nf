@@ -124,12 +124,29 @@ process augur_tree {
   """
 }
 
-process snps_tree {
+process make_alleles {
 
   tag { run_id }
 
   input:
-    tuple val(run_id), path(tree), path(alleles), path(lineage_report)
+    tuple val(run_id), path(alignment), path(ref)
+
+  output:
+    tuple val(run_id), path("${run_id}_alleles.tsv")
+
+
+  script:
+  """
+  align2alleles.py --reference-name `head -1 ${ref} | tr -d \">\" | cut -f 1 -d \" \"` ${alignment} > ${run_id}_alleles.tsv
+  """
+}
+
+process plot_tree_snps {
+
+  tag { run_id }
+
+  input:
+    tuple val(run_id), path(tree), path(alleles), path(nextclade_qc)
 
   output:
     tuple val(run_id), path("${run_id}_tree_snps.pdf")
@@ -140,7 +157,7 @@ process snps_tree {
     ${run_id}_tree_snps.pdf \
     ${tree} \
     ${alleles} \
-    ${lineage_report}
+    ${nextclade_qc}
   """
 }
 

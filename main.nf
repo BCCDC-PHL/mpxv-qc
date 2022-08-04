@@ -8,6 +8,8 @@ include { prepare_multi_fasta } from './modules/mpxv-qc.nf'
 include { nextclade } from './modules/mpxv-qc.nf'
 include { augur_align } from './modules/mpxv-qc.nf'
 include { augur_tree } from './modules/mpxv-qc.nf'
+include { make_alleles } from './modules/mpxv-qc.nf'
+include { plot_tree_snps } from './modules/mpxv-qc.nf'
 
 workflow {
 
@@ -31,6 +33,8 @@ workflow {
 
     augur_tree(augur_align.out.join(nextclade_dataset.out.ref))
 
-    
+    make_alleles(augur_align.out.join(nextclade_dataset.out.ref))
+
+    plot_tree_snps(augur_tree.out.join(make_alleles.out).join(nextclade.out.qc))
      
 }

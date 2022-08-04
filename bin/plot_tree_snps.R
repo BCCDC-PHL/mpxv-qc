@@ -61,13 +61,14 @@ plot_tree_with_snps <- function(tree, alleles, lineage_path)
   
   # if a lineage file exists, annotate lineages on the plot
   if(file.exists(lineage_path)) { 
-     lineage <- read.csv(
+      lineage <- read.csv(
+          sep = '\t',
           file=lineage_path,
           header=TRUE,
           as.is=TRUE,
           quote="\"")
 
-      lineage <- lineage[c("taxon", "lineage")]
+      lineage <- lineage[c("seqName", "lineage")]
       colnames(lineage) <- c("name", "lineage")
       lineage$name <- factor(lineage$name, levels=tip.order)
       lineage$pos <- 1
