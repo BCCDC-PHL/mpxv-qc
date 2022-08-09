@@ -50,11 +50,13 @@ process nextclade_dataset {
   output:
     tuple val(run_id), path("nextclade_${params.nextclade_dataset}"), emit: dataset
     tuple val(run_id), path("nextclade_${params.nextclade_dataset}_ref.fasta"), emit: ref
+    tuple val(run_id), path("nextclade_${params.nextclade_dataset}_genemap.gff"), emit: genemap
 
   script:
   """
   nextclade dataset get --name ${params.nextclade_dataset} --output-dir nextclade_${params.nextclade_dataset}
   cp nextclade_${params.nextclade_dataset}/reference.fasta nextclade_${params.nextclade_dataset}_ref.fasta
+  cp nextclade_${params.nextclade_dataset}/genemap.gff nextclade_${params.nextclade_dataset}_genemap.gff
   """
 }
 
@@ -160,4 +162,70 @@ process plot_tree_snps {
     ${nextclade_qc}
   """
 }
+
+process build_snpeff_db {
+
+  tag { run_id }
+
+  input:
+    tuple val(run_id), path(ref)
+
+  output:
+    val(run_id)
+
+  script:
+  """
+  build_snpeff_db.py --accession `head -1 ${ref} | tr -d \">\" | cut -f 1 -d \" \"`
+  """
+}
+
+process snpeff {
+
+  tag { sample_id }
+
+  input:
+    tuple val(sample_id), path(variants), path(ref)
+
+  output:
+    tuple val(sample_id), path("${sample_id}.ann.vcf")
+
+  script:
+  """
+  snpEff -noLog -hgvs1LetterAa `head -1 ${ref} | tr -d \">\" | cut -f 1 -d \" \"` ${variants} > ${sample_id}.ann.vcf
+  """
+}
+
+process primer_bed_to_amplicon_bed {
+
+  tag { primer_bed.baseName }
+
+  input:
+    tuple path(primer_bed), path(primer_pairs)
+
+  output:
+    path("amplicons.bed")
+
+  script:
+  """
+  primers_to_amplicons.py --primer-bed ${primer_bed} --primer-pairs ${primer_pairs} > amplicons.bed
+  """
+}
+
+process calc_amplicon_depth {
+
+  tag { sample_id }
+
+  input:
+    tuple val(sample_id), path(alignment), path(alignment_index), path(amplicon_bed)
+
+  output:
+    tuple val(sample_id), path("${sample_id}.amplicon_depth.bed")
+
+  script:
+  """
+  echo -e \"#reference_name\tstart\tend\tamplicon_id\tpool\tmean_depth\" > ${sample_id}.amplicon_depth.bed
+  bedtools coverage -mean -a ${amplicon_bed} -b ${alignment} >> ${sample_id}.amplicon_depth.bed
+  """
+}
+
 

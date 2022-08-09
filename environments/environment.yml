@@ -12,3 +12,4 @@ dependencies:
   - augur=16.0.3
   - newick_utils=1.6
   - bioconductor-ggtree=3.2.0
+  - bedtools=2.30.0
