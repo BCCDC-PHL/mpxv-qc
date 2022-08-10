@@ -78,6 +78,7 @@ def main(args):
             str(amplicon['end']),
             amplicon['name'],
             amplicon['pool'],
+            '+',
         ]))
 
 

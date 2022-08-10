@@ -147,6 +147,8 @@ process plot_tree_snps {
 
   tag { run_id }
 
+  publishDir "${params.outdir}/plots", pattern: "${run_id}_tree_snps.pdf", mode: 'copy'
+
   input:
     tuple val(run_id), path(tree), path(alleles), path(nextclade_qc)
 
@@ -199,21 +201,25 @@ process primer_bed_to_amplicon_bed {
 
   tag { primer_bed.baseName }
 
+  publishDir "${params.outdir}/bed", pattern: "amplicon.bed", mode: 'copy'
+
   input:
     tuple path(primer_bed), path(primer_pairs)
 
   output:
-    path("amplicons.bed")
+    path("amplicon.bed")
 
   script:
   """
-  primers_to_amplicons.py --primer-bed ${primer_bed} --primer-pairs ${primer_pairs} > amplicons.bed
+  primers_to_amplicons.py --primer-bed ${primer_bed} --primer-pairs ${primer_pairs} > amplicon.bed
   """
 }
 
 process calc_amplicon_depth {
 
   tag { sample_id }
+
+  publishDir "${params.outdir}/qc_sequencing", pattern: "${sample_id}.amplicon_depth.bed", mode: 'copy'
 
   input:
     tuple val(sample_id), path(alignment), path(alignment_index), path(amplicon_bed)
@@ -223,7 +229,7 @@ process calc_amplicon_depth {
 
   script:
   """
-  echo -e \"#reference_name\tstart\tend\tamplicon_id\tpool\tmean_depth\" > ${sample_id}.amplicon_depth.bed
+  echo -e \"reference_name\tstart\tend\tamplicon_id\tpool\tstrand\tmean_depth\" > ${sample_id}.amplicon_depth.bed
   bedtools coverage -mean -a ${amplicon_bed} -b ${alignment} >> ${sample_id}.amplicon_depth.bed
   """
 }
