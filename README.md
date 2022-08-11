@@ -12,6 +12,7 @@ run_dir -- consensus --> identify_complete_genomes(identify_complete_genomes)
 identify_complete_genomes --> prepare_multi_fasta(prepare_multi_fasta)
 nextclade_dataset(nextclade_dataset)
 nextclade_dataset -- dataset --> nextclade(nextclade)
+prepare_multi_fasta --> nextclade
 prepare_multi_fasta --> augur_align(augur_align)
 nextclade_dataset -- ref --> augur_align
 augur_align --> augur_tree(augur_tree)
