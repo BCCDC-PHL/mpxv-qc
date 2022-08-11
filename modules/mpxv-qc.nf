@@ -111,6 +111,8 @@ process augur_tree {
 
   tag { run_id }
 
+  publishDir "${params.outdir}/qc_analysis", pattern: "${run_id}_tree.nwk", mode: 'copy'
+
   input:
     tuple val(run_id), path(alignment), path(ref)
 
@@ -129,6 +131,8 @@ process augur_tree {
 process make_alleles {
 
   tag { run_id }
+
+  publishDir "${params.outdir}/qc_analysis", pattern: "${run_id}_alleles.tsv", mode: 'copy'
 
   input:
     tuple val(run_id), path(alignment), path(ref)
@@ -167,13 +171,10 @@ process plot_tree_snps {
 
 process build_snpeff_db {
 
-  tag { run_id }
-
   input:
-    tuple val(run_id), path(ref)
+    path(ref)
 
   output:
-    val(run_id)
 
   script:
   """
@@ -185,6 +186,8 @@ process snpeff {
 
   tag { sample_id }
 
+  publishDir "${params.outdir}/qc_annotation", pattern: "${sample_id}.ann.vcf", mode: 'copy'
+
   input:
     tuple val(sample_id), path(variants), path(ref)
 
@@ -194,6 +197,24 @@ process snpeff {
   script:
   """
   snpEff -noLog -hgvs1LetterAa `head -1 ${ref} | tr -d \">\" | cut -f 1 -d \" \"` ${variants} > ${sample_id}.ann.vcf
+  """
+}
+
+process make_aa_table {
+
+  tag { sample_id }
+
+  publishDir "${params.outdir}/qc_annotation", pattern: "${sample_id}_aa_table.tsv", mode: 'copy'
+
+  input:
+    tuple val(sample_id), path(annotated_variants)
+
+  output:
+    tuple val(sample_id), path("${sample_id}_aa_table.tsv")
+
+  script:
+  """
+  snpeff_vcf_to_aa_table.py -s ${sample_id} --vcf ${annotated_variants} > ${sample_id}_aa_table.tsv
   """
 }
 
@@ -215,6 +236,26 @@ process primer_bed_to_amplicon_bed {
   """
 }
 
+process make_genome_bed {
+
+  tag { ref.baseName }
+
+  publishDir "${params.outdir}/bed", pattern: "genome.bed", mode: 'copy'
+
+  input:
+    tuple val(run_id), path(ref)
+
+  output:
+    path("genome.bed")
+
+  script:
+  """
+  samtools faidx ${ref}
+  cat ${ref}.fai | awk '{{ print \$1 \"\\t0\\t\" \$2 }}' > genome.bed
+  """
+}
+
+
 process calc_amplicon_depth {
 
   tag { sample_id }
@@ -233,5 +274,67 @@ process calc_amplicon_depth {
   bedtools coverage -mean -a ${amplicon_bed} -b ${alignment} >> ${sample_id}.amplicon_depth.bed
   """
 }
+
+process calc_per_base_depth {
+
+  tag { sample_id }
+
+  publishDir "${params.outdir}/qc_sequencing", pattern: "${sample_id}.per_base_coverage.bed", mode: 'copy'
+
+  input:
+    tuple val(sample_id), path(alignment), path(alignment_index), path(genome_bed)
+
+  output:
+    tuple val(sample_id), path("${sample_id}.per_base_coverage.bed")
+
+  script:
+  """
+  echo -e \"reference_name\tstart\tend\tposition\tdepth" > ${sample_id}.per_base_coverage.bed
+  bedtools coverage -d -a ${genome_bed} -b ${alignment} >> ${sample_id}.per_base_coverage.bed
+  """
+}
+
+process create_primer_snp_bed {
+
+  tag { sample_id }
+
+  publishDir "${params.outdir}/qc_annotation", pattern: "${sample_id}.primer_snps.bed", mode: 'copy'
+
+  input:
+    tuple val(sample_id), path(variants), path(primer_bed)
+
+  output:
+    tuple val(sample_id), path("${sample_id}.primer_snps.bed")
+
+  script:
+  """
+  bedtools intersect -a ${variants} -b ${primer_bed} -wb > ${sample_id}.primer_snps.bed
+  """
+}
+
+
+process make_sample_qc_summary {
+
+  tag { sample_id }
+
+  input:
+    tuple val(sample_id), path(consensus), path(variants), path(per_base_coverage_bed), val(run_id), path(alleles_tsv)
+
+  output:
+    tuple val(sample_id), path("${sample_id}_summary_qc.tsv")
+
+  script:
+  """
+  qc_summary.py \
+    --sample ${sample_id} \
+    --run_name ${run_id} \
+    --consensus ${consensus} \
+    --alleles ${alleles_tsv} \
+    --variants ${variants} \
+    --coverage ${per_base_coverage_bed} \
+    > ${sample_id}_summary_qc.tsv
+  """
+}
+
 
 

@@ -12,8 +12,14 @@ include { make_alleles } from './modules/mpxv-qc.nf'
 include { plot_tree_snps } from './modules/mpxv-qc.nf'
 include { build_snpeff_db } from './modules/mpxv-qc.nf'
 include { snpeff } from './modules/mpxv-qc.nf'
+include { make_aa_table } from './modules/mpxv-qc.nf'
 include { primer_bed_to_amplicon_bed } from './modules/mpxv-qc.nf'
 include { calc_amplicon_depth } from './modules/mpxv-qc.nf'
+include { calc_per_base_depth } from './modules/mpxv-qc.nf'
+include { create_primer_snp_bed } from './modules/mpxv-qc.nf'
+include { make_genome_bed } from './modules/mpxv-qc.nf'
+include { make_sample_qc_summary } from './modules/mpxv-qc.nf'
+
 
 workflow {
 
@@ -23,7 +29,9 @@ workflow {
 
   ch_artic_analysis_dir = Channel.fromPath(params.run_dir + "/" + params.artic_analysis_subdir)
 
-  ch_variants = Channel.fromPath(params.run_dir + "/" + params.artic_analysis_subdir + "/" + params.artic_variants_subdir + "/*.vcf").map{ it -> [it.baseName.split("\\.")[0], it] }
+  ch_consensus = Channel.fromPath(params.run_dir + "/" + params.artic_analysis_subdir + "/" + params.artic_consensus_subdir + "/*${params.artic_consensus_filename_suffix}").map{ it -> [it.baseName.split("\\.")[0], it] }
+
+  ch_variants = Channel.fromPath(params.run_dir + "/" + params.artic_analysis_subdir + "/" + params.artic_variants_subdir + "/*${params.artic_variants_filename_suffix}").map{ it -> [it.baseName.split("\\.")[0], it] }
 
   ch_alignments = Channel.fromPath(params.run_dir + "/" + params.artic_analysis_subdir + "/" + params.artic_alignment_subdir + "/*${params.artic_alignment_filename_suffix}").map{ it -> [it.baseName.split("\\.")[0], it] }
 
@@ -54,15 +62,24 @@ workflow {
     plot_tree_snps(augur_tree.out.join(make_alleles.out).join(nextclade.out.qc))
 
     if (params.build_snpeff_db) {
-      build_snpeff_db(ch_run_id.join(nextclade_dataset.out.ref))
+      build_snpeff_db(nextclade_dataset.out.ref)
     }
 
     snpeff(ch_variants.combine(nextclade_dataset.out.ref.map{ it -> it[1] }))
+
+    make_aa_table(snpeff.out)
 
     primer_bed_to_amplicon_bed(ch_primer_bed.combine(ch_primer_pairs_tsv))
 
     calc_amplicon_depth(ch_alignments_with_index.combine(primer_bed_to_amplicon_bed.out))
 
+    create_primer_snp_bed(ch_variants.combine(ch_primer_bed))
+
+    make_genome_bed(nextclade_dataset.out.ref)
+
+    calc_per_base_depth(ch_alignments_with_index.combine(make_genome_bed.out))
+
+    make_sample_qc_summary(ch_consensus.join(ch_variants).join(calc_per_base_depth.out).combine(make_alleles.out))
    
      
 }
