@@ -28,7 +28,7 @@ nextclade_dataset -- ref --> snpeff
 snpeff --> make_aa_table(make_aa_table)
 primer_bed --> primer_bed_to_amplicon_bed(primer_bed_to_amplicon_bed)
 primer_pairs --> primer_bed_to_amplicon_bed
-run_dir -- alignment --> calc_amplicon_depth(calc_amplicon_depth)
+run_dir -- alignments --> calc_amplicon_depth(calc_amplicon_depth)
 primer_bed_to_amplicon_bed --> calc_amplicon_depth
 run_dir -- variants --> create_primer_snp_bed(create_primer_snp_bed)
 primer_bed --> create_primer_snp_bed
