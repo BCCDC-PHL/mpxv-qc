@@ -19,6 +19,7 @@ include { calc_per_base_depth } from './modules/mpxv-qc.nf'
 include { create_primer_snp_bed } from './modules/mpxv-qc.nf'
 include { make_genome_bed } from './modules/mpxv-qc.nf'
 include { make_sample_qc_summary } from './modules/mpxv-qc.nf'
+include { write_qc_summary } from './modules/mpxv-qc.nf'
 
 
 workflow {
@@ -80,6 +81,6 @@ workflow {
     calc_per_base_depth(ch_alignments_with_index.combine(make_genome_bed.out))
 
     make_sample_qc_summary(ch_consensus.join(ch_variants).join(calc_per_base_depth.out).join(make_aa_table.out).combine(make_alleles.out))
-   
-     
+
+    write_qc_summary(ch_run_id.combine(make_sample_qc_summary.out.map{ it -> it[1] }.splitCsv(sep: '\t').unique().toList()).map{ it -> [it[0], it[1..-1]] })
 }

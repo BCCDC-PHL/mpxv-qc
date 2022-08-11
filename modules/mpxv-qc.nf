@@ -12,7 +12,7 @@ process identify_complete_genomes {
 
   script:
   """
-  tail -qn+2 ${artic_analysis_dir}/${run_id}.qc.csv | awk -F ',' '\$3 > ${params.minimum_genome_completeness}' | cut -d ',' -f 1 | grep -v '^POS' | grep -v '^NEG' > ${run_id}_qc_pass_sample_ids.csv
+  tail -qn+2 ${artic_analysis_dir}/${run_id}.qc.csv | awk -F ',' '\$3 > (${params.minimum_genome_completeness} * 100)' | cut -d ',' -f 1 | grep -v '^POS' | grep -v '^NEG' > ${run_id}_qc_pass_sample_ids.csv
   """
 }
 
@@ -64,6 +64,8 @@ process nextclade_dataset {
 process nextclade {
 
   tag { run_id }
+
+  publishDir "${params.outdir}", pattern: "${run_id}_nextclade_qc.tsv", mode: 'copy'
 
   input:
     tuple val(run_id), path(sequences), path(dataset)
@@ -340,3 +342,19 @@ process make_sample_qc_summary {
   """
 }
 
+process write_qc_summary {
+
+  tag { run_id }
+
+  executor 'local'
+
+  input:
+    tuple val(run_id), val(lines)
+
+  exec:
+  file("${params.outdir}/${run_id}_summary_qc.tsv").withWriter { writer ->
+      for ( line in lines ) {
+          writer.writeLine(line.join('\t'))
+         }   
+  }
+}
