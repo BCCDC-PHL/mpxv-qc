@@ -104,6 +104,23 @@ def get_coverage_stats(per_base_coverage_path, delimiter='\t'):
     return coverage_stats
 
 
+def get_qc_flags(qc_line, incomplete_genome_threshold, partial_genome_threshold, excess_ambiguity_threshold):
+    qc_flags = []
+
+    if qc_line['genome_completeness'] < incomplete_genome_threshold:
+        qc_flags.append("INCOMPLETE_GENOME")
+    elif qc_line['genome_completeness'] < partial_genome_threshold:
+        qc_flags.append("PARTIAL_GENOME")
+
+    if qc_line['num_consensus_iupac'] > excess_ambiguity_threshold:
+        qc_flags.append("EXCESS_AMBIGUITY")
+
+    if len(qc_flags) == 0:
+        qc_flags.append("PASS")
+
+    return qc_flags
+
+
 def main(args):
 
     iupac_codes = ['R', 'Y', 'S', 'W', 'K', 'M', 'B', 'D', 'H', 'V']
@@ -145,6 +162,10 @@ def main(args):
     qc_line['mean_sequencing_depth'] = coverage_stats['mean_sequencing_depth']
 
     qc_line['median_sequencing_depth'] = coverage_stats['median_sequencing_depth']
+
+    qc_flags = get_qc_flags(qc_line, args.incomplete_genome_threshold, args.partial_genome_threshold, args.excess_ambiguity_threshold)
+
+    qc_line['qc_pass'] = ','.join(qc_flags)
     
     output_fieldnames = [
         'sample',
@@ -187,6 +208,12 @@ if __name__ == '__main__':
                         help='run name for sample')
     parser.add_argument('-t', '--aa_table',
                         help='full path to the <sample>_aa_table.tsv file')
+    parser.add_argument('--incomplete_genome_threshold', type=float, default=0.50,
+                        help='')
+    parser.add_argument('--partial_genome_threshold', type=float, default=0.85,
+                        help='')
+    parser.add_argument('--excess_ambiguity_threshold', type=int, default=5,
+                        help='')
 
     args = parser.parse_args()
 

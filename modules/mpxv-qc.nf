@@ -332,9 +332,10 @@ process make_sample_qc_summary {
     --alleles ${alleles_tsv} \
     --variants ${variants} \
     --coverage ${per_base_coverage_bed} \
+    --incomplete_genome_threshold ${params.incomplete_genome_threshold} \
+    --partial_genome_threshold ${params.partial_genome_threshold} \
+    --excess_ambiguity_threshold ${params.excess_ambiguity_threshold} \
     > ${sample_id}_summary_qc.tsv
   """
 }
-
-
 
