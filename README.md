@@ -39,6 +39,7 @@ run_dir -- consensus --> make_sample_qc_summary
 run_dir -- variants --> make_sample_qc_summary
 calc_per_base_depth --> make_sample_qc_summary
 make_alleles --> make_sample_qc_summary
+make_aa_table --> make_sample_qc_summary
 make_sample_qc_summary --> summary_qc.csv
 ```
 

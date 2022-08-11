@@ -2,6 +2,7 @@
 
 import argparse
 import csv
+import json
 import statistics
 import sys
 
@@ -104,7 +105,7 @@ def get_coverage_stats(per_base_coverage_path, delimiter='\t'):
     return coverage_stats
 
 
-def get_qc_flags(qc_line, incomplete_genome_threshold, partial_genome_threshold, excess_ambiguity_threshold):
+def get_qc_flags(qc_line, aa_table_path, incomplete_genome_threshold, partial_genome_threshold, excess_ambiguity_threshold):
     qc_flags = []
 
     if qc_line['genome_completeness'] < incomplete_genome_threshold:
@@ -115,6 +116,16 @@ def get_qc_flags(qc_line, incomplete_genome_threshold, partial_genome_threshold,
     if qc_line['num_consensus_iupac'] > excess_ambiguity_threshold:
         qc_flags.append("EXCESS_AMBIGUITY")
 
+    has_frameshift_indels = False
+    with open(aa_table_path, 'r') as f:
+        reader = csv.DictReader(f, dialect='excel-tab')
+        for row in reader:
+            if row['Consequence'] == "frameshift_variant":
+                has_frameshift_indels = True
+
+    if has_frameshift_indels:
+        qc_flags.append("POSSIBLE_FRAMESHIFT_INDELS")
+            
     if len(qc_flags) == 0:
         qc_flags.append("PASS")
 
@@ -163,7 +174,7 @@ def main(args):
 
     qc_line['median_sequencing_depth'] = coverage_stats['median_sequencing_depth']
 
-    qc_flags = get_qc_flags(qc_line, args.incomplete_genome_threshold, args.partial_genome_threshold, args.excess_ambiguity_threshold)
+    qc_flags = get_qc_flags(qc_line, args.aa_table, args.incomplete_genome_threshold, args.partial_genome_threshold, args.excess_ambiguity_threshold)
 
     qc_line['qc_pass'] = ','.join(qc_flags)
     
@@ -194,8 +205,6 @@ if __name__ == '__main__':
                         help='<sample>.vcf file to process')
     parser.add_argument('-e', '--coverage',
                         help='<sample>.per_base_coverage.bed file to process')
-    parser.add_argument('-i', '--indel', action='store_true',
-                        help='flag to determine whether to count indels')
     parser.add_argument('-m', '--meta', default=None,
                         help='full path to the metadata file')
     parser.add_argument('-a', '--alleles',

@@ -79,7 +79,7 @@ workflow {
 
     calc_per_base_depth(ch_alignments_with_index.combine(make_genome_bed.out))
 
-    make_sample_qc_summary(ch_consensus.join(ch_variants).join(calc_per_base_depth.out).combine(make_alleles.out))
+    make_sample_qc_summary(ch_consensus.join(ch_variants).join(calc_per_base_depth.out).join(make_aa_table.out).combine(make_alleles.out))
    
      
 }

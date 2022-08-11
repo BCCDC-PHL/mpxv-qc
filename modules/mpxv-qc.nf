@@ -318,7 +318,7 @@ process make_sample_qc_summary {
   tag { sample_id }
 
   input:
-    tuple val(sample_id), path(consensus), path(variants), path(per_base_coverage_bed), val(run_id), path(alleles_tsv)
+    tuple val(sample_id), path(consensus), path(variants), path(per_base_coverage_bed), path(aa_table), val(run_id), path(alleles_tsv)
 
   output:
     tuple val(sample_id), path("${sample_id}_summary_qc.tsv")
@@ -332,6 +332,7 @@ process make_sample_qc_summary {
     --alleles ${alleles_tsv} \
     --variants ${variants} \
     --coverage ${per_base_coverage_bed} \
+    --aa_table ${aa_table} \
     --incomplete_genome_threshold ${params.incomplete_genome_threshold} \
     --partial_genome_threshold ${params.partial_genome_threshold} \
     --excess_ambiguity_threshold ${params.excess_ambiguity_threshold} \
