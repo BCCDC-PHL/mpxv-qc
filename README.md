@@ -13,6 +13,7 @@ identify_complete_genomes --> prepare_multi_fasta(prepare_multi_fasta)
 nextclade_dataset(nextclade_dataset)
 nextclade_dataset -- dataset --> nextclade(nextclade)
 prepare_multi_fasta --> nextclade
+nextclade -- qc --> nextclade_qc.tsv
 prepare_multi_fasta --> augur_align(augur_align)
 nextclade_dataset -- ref --> augur_align
 augur_align --> augur_tree(augur_tree)
@@ -28,7 +29,7 @@ nextclade_dataset -- ref --> snpeff
 snpeff --> make_aa_table(make_aa_table)
 primer_bed --> primer_bed_to_amplicon_bed(primer_bed_to_amplicon_bed)
 primer_pairs --> primer_bed_to_amplicon_bed
-run_dir -- alignments --> calc_amplicon_depth(calc_amplicon_depth)
+run_dir -- alignment --> calc_amplicon_depth(calc_amplicon_depth)
 primer_bed_to_amplicon_bed --> calc_amplicon_depth
 run_dir -- variants --> create_primer_snp_bed(create_primer_snp_bed)
 primer_bed --> create_primer_snp_bed
@@ -40,8 +41,8 @@ run_dir -- consensus --> make_sample_qc_summary
 run_dir -- variants --> make_sample_qc_summary
 calc_per_base_depth --> make_sample_qc_summary
 make_alleles --> make_sample_qc_summary
-make_aa_table --> make_sample_qc_summary
-make_sample_qc_summary --> summary_qc.csv
+make_sample_qc_summary --> write_qc_summary(write_qc_summary)
+write_qc_summary --> summary_qc.tsv
 ```
 
 ## Usage
