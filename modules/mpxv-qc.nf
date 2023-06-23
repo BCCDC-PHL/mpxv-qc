@@ -171,6 +171,7 @@ process plot_tree_snps {
   """
 }
 
+
 process build_snpeff_db {
 
   input:
@@ -357,4 +358,23 @@ process write_qc_summary {
           writer.writeLine(line.join('\t'))
          }   
   }
+}
+
+
+process plot_depth_by_position {
+
+  publishDir "${params.outdir}/plots", pattern: "depth_by_position.pdf", mode: 'copy'
+
+  input:
+    path(per_base_coverage)
+
+  output:
+    path("depth_by_position.pdf")
+
+  script:
+  """
+  plot_depth_by_position.py \
+    -d . \
+    -o depth_by_position.pdf
+  """
 }

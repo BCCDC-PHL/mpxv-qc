@@ -2,24 +2,25 @@
 
 nextflow.enable.dsl = 2
 
-include { nextclade_dataset } from './modules/mpxv-qc.nf'
-include { identify_complete_genomes } from './modules/mpxv-qc.nf'
-include { prepare_multi_fasta } from './modules/mpxv-qc.nf'
-include { nextclade } from './modules/mpxv-qc.nf'
-include { augur_align } from './modules/mpxv-qc.nf'
-include { augur_tree } from './modules/mpxv-qc.nf'
-include { make_alleles } from './modules/mpxv-qc.nf'
-include { plot_tree_snps } from './modules/mpxv-qc.nf'
-include { build_snpeff_db } from './modules/mpxv-qc.nf'
-include { snpeff } from './modules/mpxv-qc.nf'
-include { make_aa_table } from './modules/mpxv-qc.nf'
+include { nextclade_dataset }          from './modules/mpxv-qc.nf'
+include { identify_complete_genomes }  from './modules/mpxv-qc.nf'
+include { prepare_multi_fasta }        from './modules/mpxv-qc.nf'
+include { nextclade }                  from './modules/mpxv-qc.nf'
+include { augur_align }                from './modules/mpxv-qc.nf'
+include { augur_tree }                 from './modules/mpxv-qc.nf'
+include { make_alleles }               from './modules/mpxv-qc.nf'
+include { plot_tree_snps }             from './modules/mpxv-qc.nf'
+include { build_snpeff_db }            from './modules/mpxv-qc.nf'
+include { snpeff }                     from './modules/mpxv-qc.nf'
+include { make_aa_table }              from './modules/mpxv-qc.nf'
 include { primer_bed_to_amplicon_bed } from './modules/mpxv-qc.nf'
-include { calc_amplicon_depth } from './modules/mpxv-qc.nf'
-include { calc_per_base_depth } from './modules/mpxv-qc.nf'
-include { create_primer_snp_bed } from './modules/mpxv-qc.nf'
-include { make_genome_bed } from './modules/mpxv-qc.nf'
-include { make_sample_qc_summary } from './modules/mpxv-qc.nf'
-include { write_qc_summary } from './modules/mpxv-qc.nf'
+include { calc_amplicon_depth }        from './modules/mpxv-qc.nf'
+include { calc_per_base_depth }        from './modules/mpxv-qc.nf'
+include { plot_depth_by_position }     from './modules/mpxv-qc.nf'
+include { create_primer_snp_bed }      from './modules/mpxv-qc.nf'
+include { make_genome_bed }            from './modules/mpxv-qc.nf'
+include { make_sample_qc_summary }     from './modules/mpxv-qc.nf'
+include { write_qc_summary }           from './modules/mpxv-qc.nf'
 
 
 workflow {
@@ -79,6 +80,8 @@ workflow {
     make_genome_bed(nextclade_dataset.out.ref)
 
     calc_per_base_depth(ch_alignments_with_index.combine(make_genome_bed.out))
+
+    plot_depth_by_position(calc_per_base_depth.out.map{ it -> it[1] }.collect())
 
     make_sample_qc_summary(ch_consensus.join(ch_variants).join(calc_per_base_depth.out).join(make_aa_table.out).combine(make_alleles.out))
 
