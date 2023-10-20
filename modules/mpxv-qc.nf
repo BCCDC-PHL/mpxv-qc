@@ -123,10 +123,16 @@ process augur_tree {
 
   script:
   """
+  
+  if [ `grep -o ">" ${alignment} | wc -l` < 3 ]; then
   augur tree \
     --alignment ${alignment} \
     --output ${run_id}_tree_raw.nwk
   nw_reroot ${run_id}_tree_raw.nwk `head -1 ${ref} | tr -d \">\" | cut -f 1` > ${run_id}_tree.nwk
+
+  else 
+    echo "not enough samples to run tree" > ${run_id}_tree.nwk
+  fi
   """
 }
 
@@ -163,11 +169,16 @@ process plot_tree_snps {
 
   script:
   """
+  
+  if  [! `grep -q "not enough samples to run tree" ${tree}` ]; then
   plot_tree_snps.R \
     ${run_id}_tree_snps.pdf \
     ${tree} \
     ${alleles} \
     ${nextclade_qc}
+  else
+    echo "not enough samples to run tree" > ${run_id}_tree_snps.pdf
+  fi
   """
 }
 
