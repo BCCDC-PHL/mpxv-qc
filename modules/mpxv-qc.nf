@@ -111,10 +111,12 @@ process augur_align {
 
 process augur_tree {
 
+  errorStrategy 'ignore'
+
   tag { run_id }
 
   publishDir "${params.outdir}/qc_analysis", pattern: "${run_id}_tree.nwk", mode: 'copy'
-
+    
   input:
     tuple val(run_id), path(alignment), path(ref)
 
@@ -150,6 +152,8 @@ process make_alleles {
 }
 
 process plot_tree_snps {
+
+  errorStrategy 'ignore'
 
   tag { run_id }
 
