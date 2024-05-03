@@ -9,7 +9,7 @@ dependencies:
   - r-base=4
   - nextclade=3.4.0
   - snpEff=5.1
-  - augur=16.0.3
+  - augur=24.3.0
   - newick_utils=1.6
   - bioconductor-ggtree=3.2.0
   - bedtools=2.30.0
