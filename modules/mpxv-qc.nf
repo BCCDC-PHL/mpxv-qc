@@ -50,13 +50,13 @@ process nextclade_dataset {
   output:
     tuple val(run_id), path("nextclade_${params.nextclade_dataset}"), emit: dataset
     tuple val(run_id), path("nextclade_${params.nextclade_dataset}_ref.fasta"), emit: ref
-    tuple val(run_id), path("nextclade_${params.nextclade_dataset}_genemap.gff"), emit: genemap
+    tuple val(run_id), path("nextclade_${params.nextclade_dataset}_genome_annotation.gff3"), emit: genemap
 
   script:
   """
   nextclade dataset get --name ${params.nextclade_dataset} --output-dir nextclade_${params.nextclade_dataset}
   cp nextclade_${params.nextclade_dataset}/reference.fasta nextclade_${params.nextclade_dataset}_ref.fasta
-  cp nextclade_${params.nextclade_dataset}/genemap.gff nextclade_${params.nextclade_dataset}_genemap.gff
+  cp nextclade_${params.nextclade_dataset}/genome_annotation.gff3 nextclade_${params.nextclade_dataset}_genome_annotation.gff3
   """
 }
 
