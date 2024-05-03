@@ -56,7 +56,7 @@ process nextclade_dataset {
   """
   nextclade dataset get --name ${params.nextclade_dataset} --output-dir nextclade_${params.nextclade_dataset}
   cp nextclade_${params.nextclade_dataset}/reference.fasta nextclade_${params.nextclade_dataset}_ref.fasta
-  cp nextclade_${params.nextclade_dataset}/genemap.gff nextclade_${params.nextclade_dataset}_genemap.gff
+  cp nextclade_${params.nextclade_dataset}/genome_annotation.gff3 nextclade_${params.nextclade_dataset}_genemap.gff
   """
 }
 
